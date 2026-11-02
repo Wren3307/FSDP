@@ -3,6 +3,8 @@
 import express from 'express';
 import cors from 'cors';
 import { pool } from './db.js';
+import { loadUser, requireRole } from './auth.js';
+import attendanceRouter from './routes/attendance.js';
 
 const app = express();
 
@@ -19,6 +21,11 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ ok: false, error: 'Database unavailable' });
   }
 });
+
+// FP-7 attendance routes. The auth stub and the role check are mounted on the
+// whole router, so no attendance route can be reached without an instructor or
+// admin header.
+app.use('/api', loadUser, requireRole('instructor', 'admin'), attendanceRouter);
 
 const port = Number(process.env.PORT) || 3000;
 
